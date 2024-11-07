@@ -1,0 +1,125 @@
+---
+title: "Fragmentos de vidro"
+author: "Eric Pavarim Lima"
+date: "2023-06-14"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+library(dplyr)
+```
+
+
+```{r}
+setwd("C:\\Users\\ericp\\Downloads\\IC\\CompanyA")
+tabelaA <- list.files(path = "C:\\Users\\ericp\\Downloads\\IC\\CompanyA", pattern = "*.csv") %>% 
+  lapply(read_csv, show_col_types = FALSE) %>% 
+  bind_rows %>% 
+  as_data_frame() %>% 
+  select(-c(Rep))
+```
+
+```{r}
+setwd("C:\\Users\\ericp\\Downloads\\IC\\CompanyB")
+tabelaB <- list.files(path = "C:\\Users\\ericp\\Downloads\\IC\\CompanyB", pattern = "*.csv") %>% 
+  lapply(read_csv, show_col_types = FALSE) %>% 
+  bind_rows %>% 
+  as_data_frame() %>% 
+  select(-c(Rep))
+```
+
+```{r}
+juncao = bind_rows(tabelaA, tabelaB)
+```
+
+```{r}
+tabelaAlonger = tabelaA %>% select(-c(fragment,Company)) %>% pivot_longer(!pane, names_to = "composto", values_to = "valores")
+
+tabelaBlonger = tabelaB %>% select(-c(fragment,Company)) %>% pivot_longer(!pane, names_to = "composto", values_to = "valores")
+
+juncaoLonger = juncao %>% select(-c(fragment)) %>% 
+  pivot_longer(!c(pane,Company), names_to = "composto", values_to = "valores")
+```
+
+```{r}
+tabelaAlonger %>% ggplot(aes(x = composto, y = valores, col = pane))+
+  geom_point()+
+  theme_bw()
+```
+
+```{r}
+juncaoLonger %>% ggplot(aes(x = composto, y = valores, fill = Company))+
+  geom_bar(stat = "identity", position = position_dodge(), alpha = 0.75)+
+  theme_bw()
+```
+
+```{r}
+juncaoLonger %>% filter(valores >= 20000) %>% 
+  ggplot(aes(x = composto, y = valores, fill = Company))+
+  geom_bar(stat = "identity", position = position_dodge(), alpha = 0.75)+
+  theme_bw()
+```
+
+```{r}
+aggregate(valores~composto, data = filter(juncaoLonger, pane == "AA"), FUN = sum) %>% mutate(prop = format(valores / sum(valores), scientific = FALSE)) %>% arrange(desc(prop))
+```
+
+```{r}
+aggregate(valores~composto, data = filter(juncaoLonger, pane == "BC"), FUN = sum) %>% mutate(prop = format(valores / sum(valores), scientific = FALSE)) %>% arrange(desc(prop))
+```
+
+```{r}
+aggregate(valores~composto, data = filter(juncaoLonger, Company == "CompanyA"), FUN = sum) %>% mutate(prop = format(valores / sum(valores), scientific = FALSE)) %>% arrange(desc(prop))
+```
+
+```{r}
+analisePaneA = tabelaA %>% select(-fragment) %>% tapply(tabelaA$pane, summary) 
+
+analisePaneB = tabelaB %>% select(-fragment) %>% tapply(tabelaB$pane, summary)
+```
+
+```{r}
+juncao %>% group_by(pane) %>% summarise_at(vars(Li7:Pb208), mean)
+```
+
+```{r}
+juncao  %>% ggplot(mapping = aes(x = fragment, y = Li7, col = Company))+
+  geom_point()+
+  labs(title = "Concentração de Li7 por fragmento de vidro",
+       subtitle = "Comparação na empresa A e na empresa B",
+       x = "Fragmentos", y = "Li7")+
+  theme_bw()
+```
+
+```{r}
+x = juncao %>% select(Li7,Company,pane,fragment) %>% group_by(fragment, Company) %>% summarise(mean(Li7))
+```
+
+```{r}
+x %>% ggplot(mapping = aes(x = fragment, y = `mean(Li7)`, col = Company))+
+  geom_point()+
+  geom_hline(yintercept = 2)+
+  labs(title = "Média de Li7 por pane de vidro",
+       subtitle = "Comparação na empresa A e na empresa B",
+       x = "Fragmentos", y = "Li7")+
+  theme_bw()
+```
+
+```{r}
+x = juncao %>% select(La139,Company,pane) %>% group_by(pane, Company) %>% summarise(mean(La139))
+```
+
+```{r}
+x %>% ggplot(mapping = aes(x = pane, y = `mean(La139)`, col = Company))+
+  geom_point()+
+  geom_hline(yintercept = 2)+
+  labs(title = "Média de Li7 por pane de vidro",
+       subtitle = "Comparação na empresa A e na empresa B",
+       x = "Fragmentos", y = "Li7")+
+  theme_bw()
+```
+
+

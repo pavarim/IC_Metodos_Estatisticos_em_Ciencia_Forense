@@ -1,0 +1,126 @@
+---
+title: "Untitled"
+author: "Eric Pavarim Lima"
+date: "2024-06-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(MASS)
+library(ggplot2)
+library(tidyverse)
+library(mvtnorm)
+```
+
+```{r}
+mu = 10
+sigma_d = 10
+sigma_u = 2
+```
+
+```{r}
+mu_d = 9
+sigma_s = 1 
+
+
+sigma = matrix(c(sigma_u,0,0,sigma_s),2,2)
+sample_h0ss = mvrnorm(1000, mu = c(mu_d, mu_d), Sigma = sigma) %>% as.data.frame()
+colnames(sample_h0ss) = c("eu","es")
+
+
+sigma = matrix(c(sigma_u+sigma_d,0,0,sigma_s),2,2)
+sample_h1ss = mvrnorm(1000, mu = c(mu, mu_d), Sigma = sigma) %>% as.data.frame()
+colnames(sample_h1ss) = c("eu","es")
+```
+
+```{r}
+
+sigma = matrix(c(sigma_u + sigma_d,sigma_d,sigma_d,sigma_s + sigma_d),2,2)
+
+a = dmvnorm(sample_h0ss, mean = c(mu, mu), sigma = sigma)
+b = dnorm(sample_h0ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+c = dnorm(sample_h0ss$es, mean = mu, sd = sqrt(sigma_d + sigma_s))
+LRcs = log(a/(b*c))
+
+a = dnorm(sample_h0ss$eu, mean = mu_d, sd = sqrt(sigma_u))
+b = dnorm(sample_h0ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+LRss = log(a/b)
+
+ggplot(data.frame(LRcs, LRss), mapping = aes(x = LRss, y = LRcs))+
+  geom_point()+
+  xlim(-40,1)+
+  ylim(-40,1)
+```
+
+
+```{r}
+sigma = matrix(c(sigma_u + sigma_d,sigma_d,sigma_d,sigma_s + sigma_d),2,2)
+
+a = dmvnorm(sample_h1ss, mean = c(mu, mu), sigma = sigma)
+b = dnorm(sample_h1ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+c = dnorm(sample_h1ss$es, mean = mu, sd = sqrt(sigma_d + sigma_s))
+LRcs = log(a/(b*c))
+
+
+a = dnorm(sample_h1ss$eu, mean = mu_d, sd = sqrt(sigma_u))
+b = dnorm(sample_h1ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+LRss = log(a/b)
+
+ggplot(data.frame(LRcs, LRss), mapping = aes(x = LRss, y = LRcs))+
+  geom_point()+
+  xlim(-40,1)+
+  ylim(-40,1)
+```
+
+
+```{r}
+mu_d = 9
+sigma_s = 10^(-5) 
+
+sigma = matrix(c(sigma_u,0,0,sigma_s),2,2)
+sample_h0ss = mvrnorm(1000, mu = c(mu_d, mu_d), Sigma = sigma) %>% as.data.frame()
+colnames(sample_h0ss) = c("eu","es")
+
+
+sigma = matrix(c(sigma_u+sigma_d,0,0,sigma_s),2,2)
+sample_h1ss = mvrnorm(1000, mu = c(mu, mu_d), Sigma = sigma) %>% as.data.frame()
+colnames(sample_h1ss) = c("eu","es")
+
+
+sigma = matrix(c(sigma_u + sigma_d,sigma_d,sigma_d,sigma_s + sigma_d),2,2)
+a = dmvnorm(sample_h0ss, mean = c(mu, mu), sigma = sigma)
+b = dnorm(sample_h0ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+c = dnorm(sample_h0ss$es, mean = mu, sd = sqrt(sigma_d + sigma_s))
+LRcs = log(a/(b*c))
+
+a = dnorm(sample_h0ss$eu, mean = mu_d, sd = sqrt(sigma_u))
+b = dnorm(sample_h0ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+LRss = log(a/b)
+
+ggplot(data.frame(LRcs, LRss),mapping = aes(x = LRss, y = LRcs))+
+  geom_point()+
+  xlim(-40,10)+
+  ylim(-40,10)
+```
+
+```{r}
+sigma = matrix(c(sigma_u + sigma_d,sigma_d,sigma_d,sigma_s + sigma_d),2,2)
+
+a = dmvnorm(sample_h1ss, mean = c(mu, mu), sigma = sigma)
+b = dnorm(sample_h1ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+c = dnorm(sample_h1ss$es, mean = mu, sd = sqrt(sigma_d + sigma_s))
+LRcs = log(a/(b*c))
+
+a = dnorm(sample_h1ss$eu, mean = mu_d, sd = sqrt(sigma_u))
+b = dnorm(sample_h1ss$eu, mean = mu, sd = sqrt(sigma_d + sigma_u))
+LRss = log(a/b)
+
+ggplot(data.frame(LRcs, LRss),mapping = aes(x = LRss, y = LRcs))+
+  geom_point()+
+  xlim(-60,10)+
+  ylim(-60,10)
+```
